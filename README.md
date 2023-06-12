@@ -45,6 +45,6 @@ The simulation will start, and you can interact with it using the provided keybo
 I'm happy with the current state of the project. I have started implementing a search bar and clusters of cells but will not be finishing the feature anytime soon.
 
 ### References
-[WireWorld - Wikipedia](https://en.wikipedia.org/wiki/Wireworld)
-[WireWorld - Bitstorm](https://www.quinapalus.com/wi-index.html)
+- [WireWorld - Wikipedia](https://en.wikipedia.org/wiki/Wireworld)
+- [WireWorld - Bitstorm](https://www.quinapalus.com/wi-index.html)
 
