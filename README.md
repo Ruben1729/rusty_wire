@@ -2,6 +2,8 @@
 
 RustyWire is a wireworld simulation written in Rust. It provides an interactive environment where you can simulate and explore the behavior of electronic circuits using the WireWorld cellular automaton.
 
+Keep in mind the code could use some improvement. I built this project as a learning experience to get familiar with Rust and its features.
+
 ### WireWorld
 
 WireWorld is a cellular automaton that models the behavior of electronic circuits. It consists of cells arranged on a grid, with each cell in one of four possible states: empty, electron head, electron tail, or conductor.
