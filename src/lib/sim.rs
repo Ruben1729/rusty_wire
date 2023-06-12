@@ -3,11 +3,12 @@ extern crate piston_window;
 use piston_window::*;
 
 // Cells
-use crate::lib::cell::Cell;
+use crate::lib::cell::cell::Cell;
 use crate::lib::editor::brush::{BrushState, BrushStyle};
 
 // Event Handler
 use crate::lib::editor::input_handler::InputHandler;
+use crate::lib::editor::ui_searchbar::UiSearchBar;
 
 // UI
 use crate::lib::editor::ui_text::*;
@@ -51,17 +52,18 @@ impl<const WIDTH: usize, const HEIGHT: usize> Simulation<WIDTH, HEIGHT> {
             .unwrap();
 
         let mut text_key: UiTextList = UiTextList::new(
-            [10, 10],
-            false,
+            [10.0, 20.0],
+            true,
             20,
-            "jetbrains.ttf",
             window.create_texture_context()
         );
 
         text_key.push("keymap");
-        text_key.push("c: conductor");
-        text_key.push("e: electron head");
-        text_key.push("d: diode");
+        text_key.push("q:       conductor");
+        text_key.push("w:       electron head");
+        text_key.push("e:       electron tail");
+        text_key.push("space:   play/pause");
+        text_key.push("esc:     quit");
 
         let mut sim_step = 0;
 
@@ -73,6 +75,9 @@ impl<const WIDTH: usize, const HEIGHT: usize> Simulation<WIDTH, HEIGHT> {
 
             // no need to track if its released, press is only useful for painting
             if let Some(button) = e.press_args() {
+                if button == Button::Keyboard(Key::Space) {
+                    self.is_paused = !self.is_paused;
+                }
                 self.input_handler.key_press(button);
             }
 
@@ -81,17 +86,21 @@ impl<const WIDTH: usize, const HEIGHT: usize> Simulation<WIDTH, HEIGHT> {
             }
 
             if self.input_handler.brush.state == BrushState::Paint {
-                if self.input_handler.brush.style == BrushStyle::ElectronHead {
-                    self.canvas[self.input_handler.brush.pos[0]][self.input_handler.brush.pos[1]] = Cell::ElectronHead
-                } else if self.input_handler.brush.style == BrushStyle::Conductor {
-                    self.canvas[self.input_handler.brush.pos[0]][self.input_handler.brush.pos[1]] = Cell::Conductor
-                }
+                self.canvas[self.input_handler.brush.pos[0]][self.input_handler.brush.pos[1]] = match self.input_handler.brush.style {
+                    BrushStyle::Conductor => Cell::Conductor,
+                    BrushStyle::ElectronHead => Cell::ElectronHead,
+                    BrushStyle::ElectronTail => Cell::ElectronTail,
+                    _ => Cell::Empty
+                };
             } else if self.input_handler.brush.state == BrushState::Erase {
                 self.canvas[self.input_handler.brush.pos[0]][self.input_handler.brush.pos[1]] = Cell::Empty
             }
 
             // Draw graphics
             window.draw_2d(&e, |c, g, device| {
+                // Clear canvas
+                clear([0.0, 0.0, 0.0, 1.0], g);
+
                 // Update Map
                 if !self.is_paused {
                     sim_step += 1;
@@ -101,9 +110,6 @@ impl<const WIDTH: usize, const HEIGHT: usize> Simulation<WIDTH, HEIGHT> {
                     self.next();
                     sim_step = 0;
                 }
-
-                // Clear canvas
-                clear([0.0, 0.0, 0.0, 1.0], g);
 
                 // Update Colors
                 for (i, row) in self.canvas.iter().enumerate() {
@@ -116,6 +122,58 @@ impl<const WIDTH: usize, const HEIGHT: usize> Simulation<WIDTH, HEIGHT> {
                                 (j * self.pixel_size) as f64,
                                 self.pixel_size as f64,
                                 self.pixel_size as f64
+                            ],
+                            c.transform,
+                            g);
+                    }
+                }
+
+                // Draw brush hover
+                let mut hover_color = match self.input_handler.brush.style {
+                    BrushStyle::Cluster =>      Cell::Empty.get_color(),
+                    BrushStyle::Conductor =>    Cell::Conductor.get_color(),
+                    BrushStyle::ElectronHead => Cell::ElectronHead.get_color(),
+                    BrushStyle::ElectronTail => Cell::ElectronTail.get_color(),
+                    BrushStyle::Empty =>        Cell::Empty.get_color()
+                };
+
+                hover_color[3] = 0.3;
+
+                rectangle(
+                    hover_color,
+                    [
+                        (self.input_handler.brush.pos[0] * self.pixel_size) as f64,
+                        (self.input_handler.brush.pos[1] * self.pixel_size) as f64,
+                        self.pixel_size as f64,
+                        self.pixel_size as f64
+                    ],
+                    c.transform,
+                    g);
+
+                // Update Text
+                text_key.step(c, g, device);
+
+                // Update Icons
+                let mut sim_state_icon = match self.is_paused {
+                    true => PLAY_ICON,
+                    false => PAUSE_ICON
+                };
+
+                for (i, row) in sim_state_icon.iter().enumerate() {
+                    for (j, &item) in row.iter().enumerate() {
+                        let color = match item {
+                            0 => [0.0, 0.0, 0.0, 1.0],
+                            1 => [1.0, 1.0, 1.0, 1.0],
+                            _ => [0.0, 0.0, 0.0, 1.0]
+                        };
+
+                        rectangle(
+                            color,
+                            [
+                                ((j + 190) * 4) as f64,
+                                ((i + 3) * 4) as f64,
+                                4.0,
+                                4.0
                             ],
                             c.transform,
                             g);
@@ -164,4 +222,24 @@ impl<const WIDTH: usize, const HEIGHT: usize> Simulation<WIDTH, HEIGHT> {
         count
     }
 }
+
+const PAUSE_ICON: [[usize;5];7] = [
+    [0, 1, 0, 0, 1],
+    [0, 1, 0, 0, 1],
+    [0, 1, 0, 0, 1],
+    [0, 1, 0, 0, 1],
+    [0, 1, 0, 0, 1],
+    [0, 1, 0, 0, 1],
+    [0, 1, 0, 0, 1],
+];
+
+const PLAY_ICON: [[usize;5];7] = [
+    [1, 0, 0, 0, 0],
+    [1, 1, 0, 0, 0],
+    [1, 1, 1, 0, 0],
+    [1, 1, 1, 1, 0],
+    [1, 1, 1, 0, 0],
+    [1, 1, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+];
 

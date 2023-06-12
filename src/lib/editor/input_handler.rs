@@ -20,11 +20,11 @@ impl InputHandler {
             self.brush.state = BrushState::Paint;
         } else if button == Button::Mouse(MouseButton::Right) {
             self.brush.state = BrushState::Erase;
-        } else if button == Button::Keyboard(Key::E) {
+        } else if button == Button::Keyboard(Key::W) {
             self.brush.style = BrushStyle::ElectronHead;
-        } else if button == Button::Keyboard(Key::T) {
+        } else if button == Button::Keyboard(Key::E) {
             self.brush.style = BrushStyle::ElectronTail;
-        } else if button == Button::Keyboard(Key::C) {
+        } else if button == Button::Keyboard(Key::Q) {
             self.brush.style = BrushStyle::Conductor;
         }
     }
