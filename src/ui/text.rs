@@ -1,6 +1,6 @@
 use piston_window::types::FontSize;
 use piston_window::types::ColorComponent;
-use piston_window::{Context, G2d, GfxDevice, Glyphs, TextureSettings};
+use piston_window::{Context, G2d, G2dTextureContext, GfxDevice, Glyphs, TextureSettings};
 
 pub struct UiText {
     coordinates: (f64, f64),
@@ -15,13 +15,14 @@ impl UiText {
                coordinates: (f64, f64),
                font_size: FontSize,
                color: ColorComponent,
-               font: String) -> Self {
+               font: String,
+               window_ctx: G2dTextureContext) -> Self {
         UiText {
             coordinates,
             font_size,
             glyphs: Glyphs::from_bytes(
                 font.as_ref(),
-                texture_ctx,
+                window_ctx,
                 TextureSettings::new(),
             ).expect("Unable to load glyphs."),
             color,
@@ -50,6 +51,7 @@ pub struct UiTextList {
 
     font_size: FontSize,
     font: String,
+    texture_ctx: G2dTextureContext,
 
     color: ColorComponent,
 }
@@ -60,6 +62,7 @@ impl UiTextList {
         is_vertical: bool,
         font_size: FontSize,
         font: String,
+        texture_ctx: G2dTextureContext,
         color: ColorComponent,
     ) -> Self {
         UiTextList {
@@ -70,6 +73,7 @@ impl UiTextList {
 
             font_size,
             font,
+            texture_ctx,
 
             color
         }
@@ -79,9 +83,9 @@ impl UiTextList {
         let mut text_coords = self.coordinates;
 
         if self.is_vertical {
-            text_coords.1 += self.items.len() * self.font_size;
+            text_coords.1 += self.items.len() as f64 * self.font_size;
         } else {
-            text_coords.0 += self.items.len() * self.font_size;
+            text_coords.0 += self.items.len() as f64 * self.font_size;
         }
 
         self.items.push(UiText::new(
@@ -89,7 +93,8 @@ impl UiTextList {
             text_coords,
             self.font_size,
             self.color,
-            self.font.copy()
+            self.font.copy(),
+            self.texture_ctx.copy(),
         ));
     }
 

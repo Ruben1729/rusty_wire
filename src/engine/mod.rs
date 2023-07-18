@@ -3,13 +3,15 @@ use piston_window::*;
 
 use crate::engine::camera::Camera;
 use crate::engine::cell::Cell;
+use crate::engine::grid::Grid;
 
 pub mod camera;
 pub mod cell;
+pub mod grid;
 
 pub struct Engine<const WIDTH: usize, const HEIGHT: usize> {
     // Grid of cells
-    grid: [[Cell; WIDTH]; HEIGHT],
+    grid: Grid<WIDTH, HEIGHT>,
 
     // Logic
     events: Events,
@@ -20,19 +22,21 @@ pub struct Engine<const WIDTH: usize, const HEIGHT: usize> {
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
-    pub fn new(display_width: u32, display_height: u32) -> Self {
+    pub fn new(display_width: usize, display_height: usize) -> Self {
         let events = Events::new(EventSettings::new().ups(60).max_fps(60));
         let window: PistonWindow = WindowSettings::new("RustyWire",
-                                                       [display_width, display_height])
+                                                       [display_width as u32, display_height as u32])
             .exit_on_esc(true)
             .build()
             .expect("Unable to create PistonWindow.");
 
+        let grid: Grid<WIDTH, HEIGHT> = Grid::new();
+
         Engine {
-            grid: [[Cell::Empty; WIDTH];HEIGHT],
+            grid,
             events,
             window,
-            camera: Camera::new((0.0, 0.0), 1)
+            camera: Camera::new((0, 0), (display_width, display_height), 1, 5.0)
         }
     }
 
@@ -41,52 +45,39 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
     }
 
     fn run(&mut self) {
-        while let Some(e) = self.events.next(&mut self.window) {
+        while let Some(event) = self.events.next(&mut self.window) {
+            // Handle Event
+
+
+            // Update then Render
             self.update();
-            self.render();
+            self.render(event);
         }
     }
 
-    pub fn render(&mut self) {
+    pub fn render(&mut self, e: Event) {
+        // Draw graphics
+        self.window.draw_2d(&e, |c, g, device| {
+            // Clear canvas
+            clear([0.0, 0.0, 0.0, 1.0], g);
 
+            self.camera.render(|x, y, scale| {
+                rectangle(
+                    self.grid.get_cell(x, y).get_color(),
+                    [
+                        (x * scale) as f64,
+                        (y * scale) as f64,
+                        scale as f64,
+                        scale as f64
+                    ],
+                    c.transform,
+                    g);
+            });
+        });
     }
 
     pub fn update(&mut self) {
-        let mut new_world = self.clone();
-        for (i, row) in self.grid.iter().enumerate() {
-            for (j, &cell) in row.iter().enumerate() {
-                new_world.grid[i][j] = match cell {
-                    Cell::ElectronHead => Cell::ElectronTail,
-                    Cell::ElectronTail => Cell::Conductor,
-                    Cell::Conductor => {
-                        let heads = self.count_heads(i, j);
-                        if heads == 1 || heads == 2 {
-                            Cell::ElectronHead
-                        } else {
-                            Cell::Conductor
-                        }
-                    }
-                    Cell::Empty => Cell::Empty
-                };
-            }
-        }
-        *self = new_world
-    }
-
-    fn count_heads(&self, x: usize, y: usize) -> usize {
-        let mut count = 0;
-        for i in x-1..=x+1 {
-            for j in y-1..=y+1 {
-                if i == x && j == y {
-                    continue;
-                }
-
-                if self.canvas[i][j] == Cell::ElectronHead {
-                    count += 1;
-                }
-            }
-        }
-
-        count
+        self.grid.update();
+        self.camera.update();
     }
 }
