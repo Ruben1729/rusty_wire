@@ -1,12 +1,12 @@
 use piston_window::types::FontSize;
 use piston_window::types::ColorComponent;
-use piston_window::{Context, G2d, G2dTextureContext, GfxDevice, Glyphs, TextureSettings};
+use piston_window::{Context, G2d, G2dTextureContext, GfxDevice, Glyphs, Text, TextureSettings, Transformed};
 
 pub struct UiText {
     coordinates: (f64, f64),
     font_size: FontSize,
     glyphs: Glyphs,
-    color: ColorComponent,
+    color: [ColorComponent; 4],
     value: String
 }
 
@@ -14,7 +14,7 @@ impl UiText {
     pub fn new(value: String,
                coordinates: (f64, f64),
                font_size: FontSize,
-               color: ColorComponent,
+               color: [ColorComponent; 4],
                font: String,
                window_ctx: G2dTextureContext) -> Self {
         UiText {
@@ -31,11 +31,11 @@ impl UiText {
     }
 
     pub fn render(&mut self, c: Context, g: &mut G2d, device: &mut GfxDevice) {
-        UiText::new_color(self.color, self.font_size).draw(
+        Text::new_color(self.color, self.font_size).draw(
             &self.value,
-            &self.glyphs,
+            &mut self.glyphs,
             &c.draw_state,
-            c.transform.trans(horizontal_mod, vertical_mod).zoom(0.25),
+            c.transform.trans(self.coordinates.0, self.coordinates.1).zoom(0.25),
             g
         ).expect("Unable to render text.");
 
@@ -53,7 +53,7 @@ pub struct UiTextList {
     font: String,
     texture_ctx: G2dTextureContext,
 
-    color: ColorComponent,
+    color: [ColorComponent; 4],
 }
 
 impl UiTextList {
@@ -63,7 +63,7 @@ impl UiTextList {
         font_size: FontSize,
         font: String,
         texture_ctx: G2dTextureContext,
-        color: ColorComponent,
+        color: [ColorComponent; 4],
     ) -> Self {
         UiTextList {
             items: Vec::new(),
@@ -79,13 +79,13 @@ impl UiTextList {
         }
     }
 
-    pub fn push(&mut self, text: String) {
+    pub fn push(mut self, text: String) {
         let mut text_coords = self.coordinates;
 
         if self.is_vertical {
-            text_coords.1 += self.items.len() as f64 * self.font_size;
+            text_coords.1 += self.items.len() as f64 * self.font_size as f64;
         } else {
-            text_coords.0 += self.items.len() as f64 * self.font_size;
+            text_coords.0 += self.items.len() as f64 * self.font_size as f64;
         }
 
         self.items.push(UiText::new(
@@ -93,8 +93,8 @@ impl UiTextList {
             text_coords,
             self.font_size,
             self.color,
-            self.font.copy(),
-            self.texture_ctx.copy(),
+            self.font,
+            self.texture_ctx,
         ));
     }
 

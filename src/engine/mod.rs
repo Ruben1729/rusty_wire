@@ -1,5 +1,6 @@
 extern crate piston_window;
 use piston_window::*;
+use crate::editor::brush::Brush;
 
 use crate::engine::camera::Camera;
 use crate::engine::cell::Cell;
@@ -15,6 +16,7 @@ pub struct Engine<const WIDTH: usize, const HEIGHT: usize> {
 
     // Logic
     events: Events,
+    brush: Brush,
 
     // Display
     window: PistonWindow,
@@ -26,15 +28,15 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
         let events = Events::new(EventSettings::new().ups(60).max_fps(60));
         let window: PistonWindow = WindowSettings::new("RustyWire",
                                                        [display_width as u32, display_height as u32])
-            .exit_on_esc(true)
-            .build()
-            .expect("Unable to create PistonWindow.");
-
+        .exit_on_esc(true)
+        .build()
+        .expect("Unable to create PistonWindow.");
         let grid: Grid<WIDTH, HEIGHT> = Grid::new();
 
         Engine {
             grid,
             events,
+            brush: Brush::new(),
             window,
             camera: Camera::new((0, 0), (display_width, display_height), 1, 5.0)
         }
@@ -47,7 +49,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
     fn run(&mut self) {
         while let Some(event) = self.events.next(&mut self.window) {
             // Handle Event
-
+            event.mouse_cursor(|pos|    self.brush.update_position(pos));
 
             // Update then Render
             self.update();
@@ -73,6 +75,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
                     c.transform,
                     g);
             });
+            self.brush.render(c, g, device);
         });
     }
 
