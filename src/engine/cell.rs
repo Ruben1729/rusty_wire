@@ -1,5 +1,3 @@
-extern crate piston_window;
-
 use piston_window::types::ColorComponent;
 
 #[derive(PartialEq, Clone, Copy)]
