@@ -1,12 +1,10 @@
 extern crate piston_window;
 use piston_window::*;
-use crate::editor::brush::Brush;
+use crate::editor::brush::{Brush, BRUSH_PATTERN_CONDUCTOR, BrushState};
 
-use crate::engine::camera::Camera;
 use crate::engine::cell::Cell;
 use crate::engine::grid::Grid;
 
-pub mod camera;
 pub mod cell;
 pub mod grid;
 
@@ -16,43 +14,52 @@ pub struct Engine<const WIDTH: usize, const HEIGHT: usize> {
 
     // Logic
     events: Events,
+    sim_step_speed: usize,
+    sim_step: usize,
     brush: Brush,
 
     // Display
     window: PistonWindow,
-    camera: Camera
+    pixel_size: usize,
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
-    pub fn new(display_width: usize, display_height: usize) -> Self {
+    pub fn new(pixel_size: usize) -> Self {
         let events = Events::new(EventSettings::new().ups(60).max_fps(60));
         let window: PistonWindow = WindowSettings::new("RustyWire",
-                                                       [display_width as u32, display_height as u32])
+                                                       [(WIDTH * pixel_size) as u32, (HEIGHT * pixel_size) as u32])
         .exit_on_esc(true)
         .build()
         .expect("Unable to create PistonWindow.");
-        let grid: Grid<WIDTH, HEIGHT> = Grid::new();
+        let mut grid: Grid<WIDTH, HEIGHT> = Grid::new();
+
+        grid.set_cell(10, 10, Cell::Conductor);
 
         Engine {
             grid,
             events,
-            brush: Brush::new(),
+            sim_step_speed: 5,
+            sim_step: 0,
+            brush: Brush::new(pixel_size),
             window,
-            camera: Camera::new((0, 0), (display_width, display_height), 1, 5.0)
+            pixel_size
         }
     }
 
     pub fn start(&mut self) {
+        // Base pattern
+        self.brush.set_pattern(BRUSH_PATTERN_CONDUCTOR.iter()
+                                .map(|row| row.to_vec())
+                                .collect());
+        self.sim_step = 0;
         self.run();
     }
 
     fn run(&mut self) {
         while let Some(event) = self.events.next(&mut self.window) {
             // Handle Event
-            event.mouse_cursor(|pos|    self.brush.update_position(pos));
+            self.handle_event(&event);
 
-            // Update then Render
-            self.update();
             self.render(event);
         }
     }
@@ -60,27 +67,56 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
     pub fn render(&mut self, e: Event) {
         // Draw graphics
         self.window.draw_2d(&e, |c, g, device| {
+            // UPDATE
+            self.sim_step += 1;
+
+            if self.sim_step >= 60 / self.sim_step_speed {
+                // if self.brush.state() == BrushState::Paint {
+                //     for (dx, row) in self.brush.pattern().iter().enumerate() {
+                //         for (dy, &cell)  in row.iter().enumerate() {
+                //             let coords = self.brush.coordinates();
+                //             let x = coords.0 + dx;
+                //             let y = coords.1 + dy;
+                //
+                //             if x < WIDTH && y < HEIGHT {
+                //                 self.grid.set_cell(x, y, cell);
+                //             }
+                //         }
+                //     }
+                // }
+
+                // self.grid.update();
+                // self.camera.update();
+
+                self.sim_step = 0;
+            }
+
             // Clear canvas
             clear([0.0, 0.0, 0.0, 1.0], g);
 
-            self.camera.render(|x, y, scale| {
+            self.grid.render(|x, y, cell| {
                 rectangle(
-                    self.grid.get_cell(x, y).get_color(),
+                    cell.get_color(),
                     [
-                        (x * scale) as f64,
-                        (y * scale) as f64,
-                        scale as f64,
-                        scale as f64
+                        (x * self.pixel_size) as f64,
+                        (y * self.pixel_size) as f64,
+                        self.pixel_size as f64,
+                        self.pixel_size as f64
                     ],
                     c.transform,
                     g);
             });
+
             self.brush.render(c, g, device);
         });
     }
 
-    pub fn update(&mut self) {
-        self.grid.update();
-        self.camera.update();
+    fn handle_event(&mut self, event: &Event) {
+        self.brush.handle_event(&event, &mut self.window);
+        // self.camera.handle_event(&event, &mut self.window);
     }
+}
+
+pub(crate) trait EventHandler {
+    fn handle_event(&mut self, event: &Event, window: &mut PistonWindow);
 }

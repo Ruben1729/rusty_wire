@@ -1,3 +1,4 @@
+use piston_window::{Context, G2d, GfxDevice};
 use crate::engine::cell::Cell;
 
 pub struct Grid<const WIDTH: usize, const HEIGHT: usize> {
@@ -8,6 +9,12 @@ impl<const WIDTH: usize, const HEIGHT: usize> Grid<WIDTH, HEIGHT> {
     pub fn new() -> Self {
         Grid {
             value: [[Cell::Empty; WIDTH]; HEIGHT]
+        }
+    }
+
+    pub fn set_cell(&mut self, x: usize, y: usize, cell: Cell) {
+        if x < WIDTH && y < HEIGHT {
+            self.value[y][x] = cell;
         }
     }
 
@@ -39,6 +46,14 @@ impl<const WIDTH: usize, const HEIGHT: usize> Grid<WIDTH, HEIGHT> {
             }
         }
         self.value = new_world;
+    }
+
+    pub fn render<F: FnMut(usize, usize, Cell)>(&mut self, mut operation: F) {
+        for (i, row) in self.value.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                operation(i, j, *cell);
+            }
+        }
     }
 
     fn count_heads(&self, x: usize, y: usize) -> usize {
