@@ -53,19 +53,23 @@ impl Brush {
     }
 
     pub fn render(&mut self, c: Context, g: &mut G2d, device: &mut GfxDevice) {
-        let mut hover_color = Cell::Conductor.get_color();
-        hover_color[3] = 0.3;
+        for (i, row) in self.pattern.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                let mut hover_color = cell.get_color();
+                hover_color[3] = 0.3;
 
-        rectangle(
-            hover_color,
-            [
-                (self.coordinates.0 * self.pixel_size) as f64,
-                (self.coordinates.1 * self.pixel_size) as f64,
-                self.pixel_size as f64,
-                self.pixel_size as f64
-            ],
-            c.transform,
-            g);
+                rectangle(
+                    hover_color,
+                    [
+                        ((self.coordinates.0 + i) * self.pixel_size) as f64,
+                        ((self.coordinates.1 + j) * self.pixel_size) as f64,
+                        self.pixel_size as f64,
+                        self.pixel_size as f64
+                    ],
+                    c.transform,
+                    g);
+            }
+        }
     }
 }
 
@@ -105,3 +109,17 @@ impl EventHandler for Brush {
 pub const BRUSH_PATTERN_CONDUCTOR: [[Cell; 1]; 1] = [[Cell::Conductor]];
 pub const BRUSH_PATTERN_E_HEAD: [[Cell; 1]; 1] = [[Cell::ElectronHead]];
 pub const BRUSH_PATTERN_E_TAIL: [[Cell; 1]; 1] = [[Cell::ElectronTail]];
+pub const BRUSH_PATTERN_DIODE: [[Cell; 3]; 4] = [
+    [Cell::Empty, Cell::Conductor, Cell::Empty],
+    [Cell::Conductor, Cell::Conductor, Cell::Conductor],
+    [Cell::Conductor, Cell::Empty, Cell::Conductor],
+    [Cell::Empty, Cell::Conductor, Cell::Empty],
+];
+
+pub const BRUSH_PATTERN_XOR: [[Cell;7];5] = [
+    [Cell::Conductor, Cell::Empty, Cell::Conductor, Cell::Conductor, Cell::Conductor, Cell::Empty, Cell::Conductor],
+    [Cell::Empty, Cell::Conductor, Cell::Conductor, Cell::Empty, Cell::Conductor, Cell::Conductor, Cell::Empty],
+    [Cell::Empty, Cell::Empty, Cell::Conductor, Cell::Empty, Cell::Conductor, Cell::Empty, Cell::Empty],
+    [Cell::Empty, Cell::Empty, Cell::Conductor, Cell::Conductor, Cell::Conductor, Cell::Empty, Cell::Empty],
+    [Cell::Empty, Cell::Empty, Cell::Empty, Cell::Conductor, Cell::Empty, Cell::Empty, Cell::Empty],
+];

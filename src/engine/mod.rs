@@ -1,6 +1,6 @@
 extern crate piston_window;
 use piston_window::*;
-use crate::editor::brush::{Brush, BRUSH_PATTERN_CONDUCTOR, BrushState};
+use crate::editor::brush::{Brush, BRUSH_PATTERN_CONDUCTOR, BRUSH_PATTERN_DIODE, BRUSH_PATTERN_XOR, BrushState};
 
 use crate::engine::cell::Cell;
 use crate::engine::grid::Grid;
@@ -48,7 +48,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
 
     pub fn start(&mut self) {
         // Base pattern
-        self.brush.set_pattern(BRUSH_PATTERN_CONDUCTOR.iter()
+        self.brush.set_pattern(BRUSH_PATTERN_XOR.iter()
                                 .map(|row| row.to_vec())
                                 .collect());
         self.sim_step = 0;
@@ -57,9 +57,7 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
 
     fn run(&mut self) {
         while let Some(event) = self.events.next(&mut self.window) {
-            // Handle Event
             self.handle_event(&event);
-
             self.render(event);
         }
     }
