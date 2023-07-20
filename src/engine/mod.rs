@@ -1,6 +1,6 @@
 extern crate piston_window;
 use piston_window::*;
-use crate::editor::brush::{Brush, BRUSH_PATTERN_CONDUCTOR, BRUSH_PATTERN_DIODE, BRUSH_PATTERN_XOR, BrushState};
+use crate::editor::brush::{Brush, BRUSH_PATTERN_XOR, BrushState};
 
 use crate::engine::cell::Cell;
 use crate::engine::grid::Grid;

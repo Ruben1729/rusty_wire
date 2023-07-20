@@ -15,13 +15,12 @@ impl UiText {
                coordinates: (f64, f64),
                font_size: FontSize,
                color: [ColorComponent; 4],
-               font: String,
                window_ctx: G2dTextureContext) -> Self {
         UiText {
             coordinates,
             font_size,
             glyphs: Glyphs::from_bytes(
-                font.as_ref(),
+                include_bytes!("../assets/fonts/jetbrains.ttf"),
                 window_ctx,
                 TextureSettings::new(),
             ).expect("Unable to load glyphs."),
@@ -50,7 +49,6 @@ pub struct UiTextList {
     is_vertical: bool,
 
     font_size: FontSize,
-    font: String,
     texture_ctx: G2dTextureContext,
 
     color: [ColorComponent; 4],
@@ -61,7 +59,6 @@ impl UiTextList {
         coordinates: (f64, f64),
         is_vertical: bool,
         font_size: FontSize,
-        font: String,
         texture_ctx: G2dTextureContext,
         color: [ColorComponent; 4],
     ) -> Self {
@@ -72,7 +69,6 @@ impl UiTextList {
             is_vertical,
 
             font_size,
-            font,
             texture_ctx,
 
             color
@@ -93,13 +89,12 @@ impl UiTextList {
             text_coords,
             self.font_size,
             self.color,
-            self.font,
             self.texture_ctx,
         ));
     }
 
     pub fn render(&mut self, c: Context, g: &mut G2d, device: &mut GfxDevice) {
-        for mut item in self.items {
+        for mut item in &mut self.items {
             item.render(c, g, device);
         }
     }

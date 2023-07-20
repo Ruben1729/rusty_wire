@@ -1,4 +1,3 @@
-use piston_window::{Context, G2d, GfxDevice};
 use crate::engine::cell::Cell;
 
 pub struct Grid<const WIDTH: usize, const HEIGHT: usize> {

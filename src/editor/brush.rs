@@ -52,7 +52,7 @@ impl Brush {
         self.coordinates.1 = (cursor_pos[1] / self.pixel_size as f64).floor() as usize;
     }
 
-    pub fn render(&mut self, c: Context, g: &mut G2d, device: &mut GfxDevice) {
+    pub fn render(&mut self, c: Context, g: &mut G2d, _device: &mut GfxDevice) {
         for (i, row) in self.pattern.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
                 let mut hover_color = cell.get_color();
@@ -89,18 +89,6 @@ impl EventHandler for Brush {
             if button == Button::Mouse(MouseButton::Left) ||
                 button == Button::Mouse(MouseButton::Right) {
                 self.state = BrushState::Hover;
-            }
-        }
-
-        if let Some([x, y]) = event.mouse_scroll_args() {
-            if y > 0.0 {
-                if self.pixel_size < 10 {
-                    self.pixel_size += 1;
-                }
-            } else if y < 0.0 {
-                if self.pixel_size > 1 {
-                    self.pixel_size -= 1;
-                }
             }
         }
     }
