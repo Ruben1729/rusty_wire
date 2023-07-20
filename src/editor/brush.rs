@@ -48,28 +48,24 @@ impl Brush {
     }
 
     pub fn update_position(&mut self, cursor_pos: [f64; 2]) {
-        self.coordinates.0 = (cursor_pos[0] / 10.0).floor() as usize;
-        self.coordinates.1 = (cursor_pos[1] / 10.0).floor() as usize;
+        self.coordinates.0 = (cursor_pos[0] / self.pixel_size as f64).floor() as usize;
+        self.coordinates.1 = (cursor_pos[1] / self.pixel_size as f64).floor() as usize;
     }
 
     pub fn render(&mut self, c: Context, g: &mut G2d, device: &mut GfxDevice) {
-        for (i, row) in self.pattern.iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {
-                let mut hover_color = cell.get_color();
-                hover_color[3] = 0.3;
+        let mut hover_color = Cell::Conductor.get_color();
+        hover_color[3] = 0.3;
 
-                rectangle(
-                    hover_color,
-                    [
-                        (self.coordinates.0 * self.pixel_size) as f64,
-                        (self.coordinates.1 * self.pixel_size) as f64,
-                        self.pixel_size as f64,
-                        self.pixel_size as f64
-                    ],
-                    c.transform,
-                    g);
-            }
-        }
+        rectangle(
+            hover_color,
+            [
+                (self.coordinates.0 * self.pixel_size) as f64,
+                (self.coordinates.1 * self.pixel_size) as f64,
+                self.pixel_size as f64,
+                self.pixel_size as f64
+            ],
+            c.transform,
+            g);
     }
 }
 

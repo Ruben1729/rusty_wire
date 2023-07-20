@@ -71,24 +71,22 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
             self.sim_step += 1;
 
             if self.sim_step >= 60 / self.sim_step_speed {
-                // if self.brush.state() == BrushState::Paint {
-                //     for (dx, row) in self.brush.pattern().iter().enumerate() {
-                //         for (dy, &cell)  in row.iter().enumerate() {
-                //             let coords = self.brush.coordinates();
-                //             let x = coords.0 + dx;
-                //             let y = coords.1 + dy;
-                //
-                //             if x < WIDTH && y < HEIGHT {
-                //                 self.grid.set_cell(x, y, cell);
-                //             }
-                //         }
-                //     }
-                // }
-
-                // self.grid.update();
-                // self.camera.update();
-
+                self.grid.update();
                 self.sim_step = 0;
+            }
+
+            if self.brush.state() == BrushState::Paint {
+                for (dx, row) in self.brush.pattern().iter().enumerate() {
+                    for (dy, &cell)  in row.iter().enumerate() {
+                        let coords = self.brush.coordinates();
+                        let x = coords.0 + dx;
+                        let y = coords.1 + dy;
+
+                        if x < WIDTH && y < HEIGHT {
+                            self.grid.set_cell(y, x, cell);
+                        }
+                    }
+                }
             }
 
             // Clear canvas
@@ -113,7 +111,6 @@ impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
 
     fn handle_event(&mut self, event: &Event) {
         self.brush.handle_event(&event, &mut self.window);
-        // self.camera.handle_event(&event, &mut self.window);
     }
 }
 
