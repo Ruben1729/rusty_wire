@@ -28,7 +28,7 @@ git clone https://github.com/Ruben1729/rusty_wire
 Navigate to the project directory:
 
 ```shell
-cd RustyWire
+cd rusty_wire
 ```
 Build and run the project using Cargo:
 
