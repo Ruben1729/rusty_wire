@@ -14,11 +14,7 @@ In the WireWorld simulation, electrons flow through conductors, interact with ot
 
 - **Left Click**: Place a cell.
 - **Right Click**: Erase.
-- **Spacebar**: Start or pause the simulation.
-- **Q**: Select Conductor as the cell.
-- **W**: Select Electron Head as the cell.
-- **E**: Select Electron Tail as the cell.
-- **Esc**: Quit the simulation
+- **Scroll**: Change brush.
 
 ### Getting Started
 
@@ -42,7 +38,7 @@ cargo run
 The simulation will start, and you can interact with it using the provided keyboard controls.
 
 ### Future Plans
-I'm happy with the current state of the project. I have started implementing a search bar and clusters of cells but will not be finishing the feature anytime soon.
+I'm happy with the current state of the project, although I would like to eventually add the brushes for other logic .
 
 ### References
 - [WireWorld - Wikipedia](https://en.wikipedia.org/wiki/Wireworld)
