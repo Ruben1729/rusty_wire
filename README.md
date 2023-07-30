@@ -23,7 +23,7 @@ Follow these steps to run RustyWire:
 Clone the RustyWire repository:
 
 ```shell
-git clone https://github.com/your-username/RustyWire.git
+git clone https://github.com/Ruben1729/rusty_wire
 ```
 Navigate to the project directory:
 
