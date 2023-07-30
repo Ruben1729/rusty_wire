@@ -1,6 +1,8 @@
-use piston_window::{Button, Context, Event, G2d, GfxDevice, MouseButton, MouseCursorEvent, MouseScrollEvent, PistonWindow, PressEvent, rectangle, ReleaseEvent};
+use piston_window::{Button, Context, Event, G2d, G2dTextureContext, GfxDevice, Motion, MouseButton, MouseCursorEvent, MouseScrollEvent, PistonWindow, PressEvent, rectangle, ReleaseEvent, Window};
+use piston_window::Input;
 use crate::engine::cell::Cell;
 use crate::engine::EventHandler;
+use crate::ui::text_scroll::UiTextScroll;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum BrushState {
@@ -13,15 +15,32 @@ pub enum BrushState {
 pub struct Brush {
     coordinates: (usize, usize),
     pattern: Vec<Vec<Cell>>,
+    brush_id: Brushes,
+    text_scroll: UiTextScroll,
     state: BrushState,
     pixel_size: usize
 }
 
 impl Brush {
-    pub fn new(pixel_size: usize) -> Self {
+    pub fn new(pixel_size: usize, mut window: &mut PistonWindow) -> Self {
+        let mut text_scroll = UiTextScroll::new(
+            (10.0, 30.0),
+            50,
+            window.create_texture_context(),
+            [1.0, 1.0, 1.0, 1.0]
+        );
+
+        text_scroll.push(String::from("Conductor"), window.create_texture_context());
+        text_scroll.push(String::from("Head"), window.create_texture_context());
+        text_scroll.push(String::from("Tail"), window.create_texture_context());
+        text_scroll.push(String::from("Diode"), window.create_texture_context());
+        text_scroll.push(String::from("Xor"), window.create_texture_context());
+
         Brush {
             coordinates: (0, 0),
             pattern: Vec::new(),
+            brush_id: Brushes::Diode,
+            text_scroll,
             state: BrushState::Hover,
             pixel_size
         }
@@ -52,7 +71,7 @@ impl Brush {
         self.coordinates.1 = (cursor_pos[1] / self.pixel_size as f64).floor() as usize;
     }
 
-    pub fn render(&mut self, c: Context, g: &mut G2d, _device: &mut GfxDevice) {
+    pub fn render(&mut self, c: Context, g: &mut G2d, device: &mut GfxDevice) {
         for (i, row) in self.pattern.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {
                 let mut hover_color = cell.get_color();
@@ -70,6 +89,8 @@ impl Brush {
                     g);
             }
         }
+
+        self.text_scroll.render(c, g, device);
     }
 }
 
@@ -91,7 +112,53 @@ impl EventHandler for Brush {
                 self.state = BrushState::Hover;
             }
         }
+
+        event.mouse_scroll(|args| {
+            if args[1] > 0.0 {
+                self.text_scroll.increase();
+            } else if args[1] < 0.0 {
+                self.text_scroll.decrease();
+            }
+
+            // TODO: Got a little lazy, make this so that it gets mapped to the enum somehow
+            match self.text_scroll.active_idx() {
+                1 => {
+                    self.set_pattern(BRUSH_PATTERN_E_HEAD.iter()
+                        .map(|row| row.to_vec())
+                        .collect())
+                }
+                2 => {
+                    self.set_pattern(BRUSH_PATTERN_E_TAIL.iter()
+                        .map(|row| row.to_vec())
+                        .collect())
+                }
+                3 => {
+                    self.set_pattern(BRUSH_PATTERN_DIODE.iter()
+                        .map(|row| row.to_vec())
+                        .collect())
+                }
+                4 => {
+                    self.set_pattern(BRUSH_PATTERN_XOR.iter()
+                        .map(|row| row.to_vec())
+                        .collect())
+                }
+                _ => {
+                    self.set_pattern(BRUSH_PATTERN_CONDUCTOR.iter()
+                        .map(|row| row.to_vec())
+                        .collect())
+                }
+            }
+        });
     }
+}
+
+#[repr(isize)]
+pub enum Brushes {
+    Conductor,
+    Head,
+    Tail,
+    Diode,
+    Xor
 }
 
 pub const BRUSH_PATTERN_CONDUCTOR: [[Cell; 1]; 1] = [[Cell::Conductor]];

@@ -40,6 +40,18 @@ impl UiText {
 
         self.glyphs.factory.encoder.flush(device);
     }
+
+    pub fn set_coordinates(&mut self, coordinates: (f64, f64)) {
+        self.coordinates = coordinates;
+    }
+
+    pub fn set_color(&mut self, color: [ColorComponent; 4]) {
+        self.color = color;
+    }
+
+    pub fn set_opacity(&mut self, opacity: f32) {
+        self.color[3] = opacity;
+    }
 }
 
 pub struct UiTextList {
@@ -94,8 +106,9 @@ impl UiTextList {
     }
 
     pub fn render(&mut self, c: Context, g: &mut G2d, device: &mut GfxDevice) {
-        for mut item in &mut self.items {
+        for item in &mut self.items {
             item.render(c, g, device);
         }
     }
+
 }

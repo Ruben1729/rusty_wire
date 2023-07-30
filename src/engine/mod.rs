@@ -26,21 +26,19 @@ pub struct Engine<const WIDTH: usize, const HEIGHT: usize> {
 impl<const WIDTH: usize, const HEIGHT: usize> Engine<WIDTH, HEIGHT> {
     pub fn new(pixel_size: usize) -> Self {
         let events = Events::new(EventSettings::new().ups(60).max_fps(60));
-        let window: PistonWindow = WindowSettings::new("RustyWire",
-                                                       [(WIDTH * pixel_size) as u32, (HEIGHT * pixel_size) as u32])
+        let mut window: PistonWindow = WindowSettings::new("RustyWire",
+                                                           [(WIDTH * pixel_size) as u32, (HEIGHT * pixel_size) as u32])
         .exit_on_esc(true)
         .build()
         .expect("Unable to create PistonWindow.");
-        let mut grid: Grid<WIDTH, HEIGHT> = Grid::new();
-
-        grid.set_cell(10, 10, Cell::Conductor);
+        let grid: Grid<WIDTH, HEIGHT> = Grid::new();
 
         Engine {
             grid,
             events,
             sim_step_speed: 5,
             sim_step: 0,
-            brush: Brush::new(pixel_size),
+            brush: Brush::new(pixel_size, &mut window),
             window,
             pixel_size
         }
